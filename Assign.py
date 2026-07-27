@@ -190,6 +190,21 @@ else:
                 else:
 
                     st.warning("No Record Found")
+marks = 85
+status = "Accepted"
+feedback = "Good Work"
+
+
+from utils import extract_text, evaluate_assignment
+
+text = extract_text(assignment)
+
+result = evaluate_assignment(text)
+
+st.subheader("AI Evaluation")
+
+st.write(result)
+    
 
     elif password!="":
 
