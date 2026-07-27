@@ -1,8 +1,10 @@
+
 import streamlit as st
 import os
 import pandas as pd
-from database import *
 
+from database import *
+from utils import extract_text, evaluate_assignment
 st.set_page_config(
     page_title="AI Assignment Evaluation System",
     page_icon="🎓",
@@ -70,25 +72,44 @@ if menu == "Student Submission":
             with open(filepath,"wb") as f:
                 f.write(assignment.getbuffer())
 
-            ##################################################
-            # Dummy Evaluation
-            ##################################################
+text = extract_text(assignment)
 
-            marks=85
-            status="Accepted"
+result = evaluate_assignment(text)
 
-            feedback="""
-Excellent work.
+marks = result["total"]
+status = result["status"]
+feedback = result["feedback"]
+insert_result(
+    name,
+    regno,
+    department,
+    subject,
+    marks,
+    status,
+    feedback
+)
 
-Content Quality : Good
+st.success("Assignment Submitted Successfully")
 
-Formatting : Good
+st.metric("Total Marks", f"{marks}/100")
 
-Originality : Good
+st.subheader("Rubric Evaluation")
 
-Images : Accepted
-"""
+col1, col2 = st.columns(2)
 
+with col1:
+    st.metric("Understanding", result["understanding"])
+    st.metric("Technical", result["technical"])
+    st.metric("Critical Thinking", result["critical"])
+
+with col2:
+    st.metric("Images", result["images"])
+    st.metric("Presentation", result["presentation"])
+
+st.subheader("Faculty Feedback")
+
+st.write(feedback)
+            
             insert_result(
                 name,
                 regno,
@@ -191,20 +212,6 @@ else:
 
                     st.warning("No Record Found")
 
-with open("rubric.txt", "r", encoding="utf-8") as f:
-    rubric = f.read()
-
-prompt = rubric + "\n\nStudent Assignment:\n\n" + text
-
-from utils import extract_text, evaluate_assignment
-
-text = extract_text(assignment)
-
-result = evaluate_assignment(text)
-
-st.subheader("AI Evaluation")
-
-st.write(result)
 
     elif password!="":
 
