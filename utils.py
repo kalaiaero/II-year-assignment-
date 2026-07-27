@@ -1,28 +1,19 @@
-import streamlit as st
 import pdfplumber
 import docx
 import json
 import google.generativeai as genai
 
 
-# Gemini API Setup
+# Gemini API Key
+API_KEY = "YOUR_GEMINI_API_KEY_HERE"
 
-try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
+genai.configure(api_key=API_KEY)
 
-except Exception:
-    st.error("GOOGLE_API_KEY missing in Streamlit Secrets")
-    st.stop()
-
-
-genai.configure(api_key=api_key)
 
 model = genai.GenerativeModel(
     "gemini-1.5-pro"
 )
 
-
-# Extract PDF / DOCX text
 
 def extract_text(uploaded_file):
 
@@ -57,27 +48,23 @@ def extract_text(uploaded_file):
     return ""
 
 
-# AI Evaluation
-
 def evaluate_assignment(text):
 
     prompt = f"""
 
 You are a university professor.
 
-Evaluate this assignment.
+Evaluate this student assignment.
 
 Give marks:
 
-Understanding /20
-Technical Accuracy /20
-Critical Thinking /20
-Images /20
-Presentation /20
+Understanding: /20
+Technical Accuracy: /20
+Critical Thinking: /20
+Images: /20
+Presentation: /20
 
-Return JSON only.
-
-Format:
+Return only JSON:
 
 {{
 "understanding":0,
@@ -86,7 +73,7 @@ Format:
 "images":0,
 "presentation":0,
 "total":0,
-"status":"",
+"status":"Accepted",
 "feedback":""
 }}
 
@@ -99,8 +86,6 @@ Assignment:
 
     response = model.generate_content(prompt)
 
-
     result = json.loads(response.text)
-
 
     return result
