@@ -40,3 +40,17 @@ Example:
     "status":"Accepted",
     "feedback":"Good assignment with proper explanation and relevant images."
 }
+with open("rubric.txt", "r", encoding="utf-8") as f:
+    rubric = f.read()
+
+prompt = rubric + "\n\nStudent Assignment:\n\n" + text
+
+from utils import extract_text, evaluate_assignment
+
+text = extract_text(assignment)
+
+result = evaluate_assignment(text)
+
+st.subheader("AI Evaluation")
+
+st.write(result)
