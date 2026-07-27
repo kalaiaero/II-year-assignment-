@@ -1,9 +1,14 @@
 import json
 import pdfplumber
 import docx
-import google.generativeai as genai
 import streamlit as st
-api_key = st.secrets["GOOGLE_API_KEY"]
+import google.generativeai as genai
+
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except KeyError:
+    st.error("GOOGLE_API_KEY is missing. Please add it in Streamlit Secrets.")
+    st.stop()
 
 genai.configure(api_key=api_key)
 
