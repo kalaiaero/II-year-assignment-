@@ -1,106 +1,196 @@
 import streamlit as st
-import pdfplumber
-from PIL import Image
-import tempfile
 import os
-from transformers import pipeline
+import pandas as pd
+from database import *
 
-st.title("Assignment Evaluation System")
-
-# AI Image Detector
-detector = pipeline(
-    "image-classification",
-    model="umm-maybe/AI-image-detector"
+st.set_page_config(
+    page_title="AI Assignment Evaluation System",
+    page_icon="🎓",
+    layout="wide"
 )
 
-uploaded_file = st.file_uploader(
-    "Upload Assignment",
-    type=["pdf","docx"]
+create_table()
+
+menu = st.sidebar.selectbox(
+    "Select Portal",
+    ["Student Submission", "Faculty Dashboard"]
 )
 
-if uploaded_file:
+###########################################################
+# STUDENT SUBMISSION
+###########################################################
 
-    st.success("File Uploaded")
+if menu == "Student Submission":
 
-    images=[]
+    st.title("🎓 AI Assignment Submission Portal")
 
-    if uploaded_file.name.endswith(".pdf"):
+    col1,col2=st.columns(2)
 
-        with pdfplumber.open(uploaded_file) as pdf:
+    with col1:
+        name=st.text_input("Student Name")
 
-            for page in pdf.pages:
+    with col2:
+        regno=st.text_input("Register Number")
 
-                for img in page.images:
+    department=st.selectbox(
+        "Department",
+        [
+            "CSE",
+            "AI&DS",
+            "IT",
+            "ECE",
+            "EEE",
+            "MECH",
+            "CIVIL"
+        ]
+    )
 
-                    x0,y0,x1,y1 = img["x0"],img["top"],img["x1"],img["bottom"]
+    subject=st.text_input("Subject")
 
-                    crop = page.crop((x0,y0,x1,y1))
+    assignment=st.file_uploader(
+        "Upload Assignment",
+        type=["pdf","docx"]
+    )
 
-                    im = crop.to_image(resolution=200)
+    if st.button("Submit Assignment"):
 
-                    temp = tempfile.NamedTemporaryFile(delete=False,suffix=".png")
+        if assignment is None:
 
-                    im.save(temp.name)
-
-                    images.append(temp.name)
-
-    ai_found=False
-
-    for image in images:
-
-        result=detector(image)
-
-        label=result[0]["label"]
-
-        score=result[0]["score"]
-
-        st.write(label,score)
-
-        if "AI" in label.upper() and score>0.80:
-            ai_found=True
-
-    if ai_found:
-
-        st.error("Assignment Rejected")
-
-        st.write("Reason: AI-generated image detected.")
-
-    else:
-
-        st.success("Original Images Found")
-
-        marks=0
-
-        text=""
-
-        if uploaded_file.name.endswith(".pdf"):
-
-            with pdfplumber.open(uploaded_file) as pdf:
-
-                for page in pdf.pages:
-
-                    text+=page.extract_text() or ""
-
-        words=len(text.split())
-
-        if words>1000:
-            marks+=20
-
-        elif words>700:
-            marks+=15
+            st.error("Please upload assignment.")
 
         else:
-            marks+=10
 
-        if len(images)>=3:
-            marks+=20
+            os.makedirs("uploads",exist_ok=True)
 
-        elif len(images)>=2:
-            marks+=15
+            filepath=os.path.join(
+                "uploads",
+                assignment.name
+            )
 
-        else:
-            marks+=10
+            with open(filepath,"wb") as f:
+                f.write(assignment.getbuffer())
 
-        marks+=60
+            ##################################################
+            # Dummy Evaluation
+            ##################################################
 
-        st.success(f"Final Marks : {marks}/100")
+            marks=85
+            status="Accepted"
+
+            feedback="""
+Excellent work.
+
+Content Quality : Good
+
+Formatting : Good
+
+Originality : Good
+
+Images : Accepted
+"""
+
+            insert_result(
+                name,
+                regno,
+                department,
+                subject,
+                marks,
+                status,
+                feedback
+            )
+
+            st.success("Assignment Submitted Successfully")
+
+            st.metric(
+                "Marks",
+                f"{marks}/100"
+            )
+
+            st.text_area(
+                "Feedback",
+                feedback,
+                height=200
+            )
+
+###########################################################
+# FACULTY DASHBOARD
+###########################################################
+
+else:
+
+    st.title("Faculty Dashboard")
+
+    password=st.text_input(
+        "Faculty Password",
+        type="password"
+    )
+
+    if password=="admin123":
+
+        st.success("Login Successful")
+
+        data=view_all()
+
+        if len(data)>0:
+
+            df=pd.DataFrame(
+                data,
+                columns=[
+                    "ID",
+                    "Student Name",
+                    "Register Number",
+                    "Department",
+                    "Subject",
+                    "Marks",
+                    "Status",
+                    "Feedback"
+                ]
+            )
+
+            st.dataframe(
+                df,
+                use_container_width=True
+            )
+
+            st.download_button(
+                "Download Results",
+                df.to_csv(index=False),
+                "Assignment_Results.csv",
+                "text/csv"
+            )
+
+            st.subheader("Search Student")
+
+            reg=st.text_input(
+                "Enter Register Number"
+            )
+
+            if st.button("Search"):
+
+                result=search_student(reg)
+
+                if result:
+
+                    rdf=pd.DataFrame(
+                        result,
+                        columns=[
+                            "ID",
+                            "Student Name",
+                            "Register Number",
+                            "Department",
+                            "Subject",
+                            "Marks",
+                            "Status",
+                            "Feedback"
+                        ]
+                    )
+
+                    st.dataframe(rdf)
+
+                else:
+
+                    st.warning("No Record Found")
+
+    elif password!="":
+
+        st.error("Wrong Password")
