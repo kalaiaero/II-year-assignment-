@@ -23,103 +23,55 @@ menu = st.sidebar.selectbox(
 ###########################################################
 # STUDENT SUBMISSION
 ###########################################################
+if st.button("Submit Assignment"):
 
-if menu == "Student Submission":
+    if assignment is None:
+        st.error("Please upload assignment.")
 
-    st.title("🎓 AI Assignment Submission Portal")
+    else:
 
-    col1, col2 = st.columns(2)
+        os.makedirs("uploads", exist_ok=True)
 
-    with col1:
-        name = st.text_input("Student Name")
+        filepath = os.path.join("uploads", assignment.name)
 
-    with col2:
-        regno = st.text_input("Register Number")
+        with open(filepath, "wb") as f:
+            f.write(assignment.getbuffer())
 
-    department = st.selectbox(
-        "Department",
-        ["CSE", "AI&DS", "IT", "ECE", "EEE", "MECH", "CIVIL"]
-    )
+        text = extract_text(assignment)
+        result = evaluate_assignment(text)
 
-    subject = st.text_input("Subject")
+        marks = result["total"]
+        status = result["status"]
+        feedback = result["feedback"]
 
-    assignment = st.file_uploader(
-        "Upload Assignment",
-        type=["pdf", "docx"]
-    )
+        insert_result(
+            name,
+            regno,
+            department,
+            subject,
+            marks,
+            status,
+            feedback
+        )
 
-    if st.button("Submit Assignment"):
+        st.success("Assignment Submitted Successfully")
+        st.metric("Total Marks", f"{marks}/100")
 
-        if assignment is None:
+        st.subheader("Rubric Evaluation")
 
-            st.error("Please upload assignment.")
+        col1, col2 = st.columns(2)
 
-        else:
+        with col1:
+            st.metric("Understanding", result["understanding"])
+            st.metric("Technical", result["technical"])
+            st.metric("Critical Thinking", result["critical"])
 
-            os.makedirs("uploads", exist_ok=True)
+        with col2:
+            st.metric("Images", result["images"])
+            st.metric("Presentation", result["presentation"])
 
-            filepath = os.path.join(
-                "uploads",
-                assignment.name
-            )
-
-            with open(filepath, "wb") as f:
-                f.write(assignment.getbuffer())
-
-            # AI Evaluation
-            text = extract_text(assignment)
-
-            result = evaluate_assignment(text)
-
-            st.metric("Total Marks", f'{result["total"]}/100')
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.metric("Understanding", result["understanding"])
-    st.metric("Technical", result["technical"])
-    st.metric("Critical Thinking", result["critical"])
-
-with col2:
-    st.metric("Images", result["images"])
-    st.metric("Presentation", result["presentation"])
-
-st.subheader("Faculty Feedback")
-st.write(result["feedback"])
-
-            marks = result["total"]
-            status = result["status"]
-            feedback = result["feedback"]
-
-            insert_result(
-                name,
-                regno,
-                department,
-                subject,
-                marks,
-                status,
-                feedback
-            )
-
-            st.success("Assignment Submitted Successfully")
-
-            st.metric("Total Marks", f"{marks}/100")
-
-            st.subheader("Rubric Evaluation")
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-                st.metric("Understanding", result["understanding"])
-                st.metric("Technical", result["technical"])
-                st.metric("Critical Thinking", result["critical"])
-
-            with col2:
-                st.metric("Images", result["images"])
-                st.metric("Presentation", result["presentation"])
-
-            st.subheader("Faculty Feedback")
-            st.write(feedback)
+        st.subheader("Faculty Feedback")
+        st.write(feedback)
 
 ###########################################################
 # FACULTY DASHBOARD
