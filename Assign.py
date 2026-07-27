@@ -209,3 +209,11 @@ st.write(result)
     elif password!="":
 
         st.error("Wrong Password")
+
+st.subheader("Evaluation")
+
+st.metric("Marks", marks)
+
+st.success(status)
+
+st.write(feedback)
