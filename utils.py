@@ -1,20 +1,6 @@
 import json
 import pdfplumber
 import docx
-import streamlit as st
-import google.generativeai as genai
-
-try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-except KeyError:
-    st.error("GOOGLE_API_KEY is missing. Please add it in Streamlit Secrets.")
-    st.stop()
-
-genai.configure(api_key=api_key)
-
-model = genai.GenerativeModel("gemini-1.5-pro")
-
-
 def extract_text(uploaded_file):
     """Extract text from PDF or DOCX."""
 
