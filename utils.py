@@ -1,14 +1,14 @@
+import streamlit as st
 import pdfplumber
 import docx
-from openai import OpenAI
 import json
+from openai import OpenAI
 
 
-# OpenAI API Key
-API_KEY = "YOUR_OPENAI_API_KEY"
+# Load OpenAI API Key from Streamlit Secrets
 
 client = OpenAI(
-    api_key="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"
+    api_key=st.secrets["OPENAI_API_KEY"]
 )
 
 
