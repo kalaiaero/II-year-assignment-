@@ -1,17 +1,26 @@
 import sqlite3
+import os
 
-# Connect to database
-conn = sqlite3.connect("assignment.db", check_same_thread=False)
-c = conn.cursor()
+DB_NAME = "assignment.db"
+
+
+def get_connection():
+    return sqlite3.connect(
+        DB_NAME,
+        check_same_thread=False
+    )
 
 
 def create_table():
+
+    conn = get_connection()
+    c = conn.cursor()
 
     c.execute("""
         CREATE TABLE IF NOT EXISTS assignments(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_name TEXT,
-            register_number TEXT UNIQUE,
+            register_number TEXT,
             department TEXT,
             subject TEXT,
             marks INTEGER,
@@ -21,18 +30,24 @@ def create_table():
     """)
 
     conn.commit()
+    conn.close()
 
 
-def insert_result(student_name,
-                  register_number,
-                  department,
-                  subject,
-                  marks,
-                  status,
-                  feedback):
+def insert_result(
+    student_name,
+    register_number,
+    department,
+    subject,
+    marks,
+    status,
+    feedback
+):
+
+    conn = get_connection()
+    c = conn.cursor()
 
     c.execute("""
-        INSERT OR REPLACE INTO assignments
+        INSERT INTO assignments
         (
             student_name,
             register_number,
@@ -42,8 +57,7 @@ def insert_result(student_name,
             status,
             feedback
         )
-
-        VALUES (?,?,?,?,?,?,?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     """,
     (
         student_name,
@@ -56,20 +70,39 @@ def insert_result(student_name,
     ))
 
     conn.commit()
+    conn.close()
+
 
 
 def view_all():
 
-    c.execute("SELECT * FROM assignments")
+    conn = get_connection()
+    c = conn.cursor()
 
-    return c.fetchall()
+    c.execute(
+        "SELECT * FROM assignments"
+    )
+
+    data = c.fetchall()
+
+    conn.close()
+
+    return data
+
 
 
 def search_student(regno):
+
+    conn = get_connection()
+    c = conn.cursor()
 
     c.execute(
         "SELECT * FROM assignments WHERE register_number=?",
         (regno,)
     )
 
-    return c.fetchall()
+    data = c.fetchall()
+
+    conn.close()
+
+    return data
