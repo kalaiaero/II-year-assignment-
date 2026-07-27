@@ -23,11 +23,15 @@ menu = st.sidebar.selectbox(
 ###########################################################
 # STUDENT SUBMISSION
 ###########################################################
+assignment = st.file_uploader(
+    "Upload Assignment",
+    type=["pdf", "docx"]
+)
+
 if st.button("Submit Assignment"):
 
     if assignment is None:
         st.error("Please upload assignment.")
-
     else:
 
         os.makedirs("uploads", exist_ok=True)
