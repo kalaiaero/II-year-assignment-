@@ -4,9 +4,7 @@ import docx
 import json
 from openai import OpenAI
 
-
 # Load OpenAI API Key from Streamlit Secrets
-
 client = OpenAI(
     api_key=st.secrets["OPENAI_API_KEY"]
 )
@@ -21,11 +19,11 @@ def extract_text(uploaded_file):
         with pdfplumber.open(uploaded_file) as pdf:
 
             for page in pdf.pages:
+
                 data = page.extract_text()
 
                 if data:
                     text += data + "\n"
-
 
     elif uploaded_file.name.endswith(".docx"):
 
@@ -34,15 +32,12 @@ def extract_text(uploaded_file):
         for para in doc.paragraphs:
             text += para.text + "\n"
 
-
     return text
-
 
 
 def evaluate_assignment(text):
 
     prompt = f"""
-
 You are a university professor.
 
 Evaluate this student assignment.
@@ -55,38 +50,51 @@ Give marks:
 4. Originality - 20
 5. Presentation - 20
 
-Return only JSON:
+Return ONLY valid JSON in this format:
 
 {{
-"understanding":0,
-"technical":0,
-"examples":0,
-"originality":0,
-"presentation":0,
-"total":0,
-"status":"",
-"feedback":""
+    "understanding": 18,
+    "technical": 17,
+    "examples": 16,
+    "originality": 18,
+    "presentation": 19,
+    "total": 88,
+    "status": "Accepted",
+    "feedback": "Detailed feedback here."
 }}
 
 Assignment:
 
 {text}
-
 """
 
-try:
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
-    )
-except Exception as e:
-    import streamlit as st
-    st.error(str(e))
-    raise
+    try:
 
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        )
 
-    result = response.choices[0].message.content
+        result = response.choices[0].message.content
 
-    return json.loads(result)
+        return json.loads(result)
+
+    except Exception as e:
+
+        st.error(f"OpenAI Error: {e}")
+
+        return {
+            "understanding": 0,
+            "technical": 0,
+            "examples": 0,
+            "originality": 0,
+            "presentation": 0,
+            "total": 0,
+            "status": "Failed",
+            "feedback": str(e)
+        }
