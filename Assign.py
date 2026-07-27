@@ -2,8 +2,10 @@
 import streamlit as st
 import os
 import pandas as pd
-
 from database import *
+
+create_table()
+
 from utils import extract_text, evaluate_assignment
 st.set_page_config(
     page_title="AI Assignment Evaluation System",
