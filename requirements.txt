@@ -1,0 +1,9 @@
+streamlit
+pdfplumber
+python-docx
+Pillow
+opencv-python-headless
+transformers
+torch
+torchvision
+google-generativeai
