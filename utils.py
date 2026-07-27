@@ -1,9 +1,33 @@
+import json
+import pdfplumber
+import docx
 import google.generativeai as genai
 import streamlit as st
 
+# Configure Gemini
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 
 model = genai.GenerativeModel("gemini-2.5-pro")
+
+
+def extract_text(uploaded_file):
+    """Extract text from PDF or DOCX."""
+
+    if uploaded_file.name.endswith(".pdf"):
+        text = ""
+        with pdfplumber.open(uploaded_file) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
+        return text
+
+    elif uploaded_file.name.endswith(".docx"):
+        doc = docx.Document(uploaded_file)
+        return "\n".join([p.text for p in doc.paragraphs])
+
+    else:
+        return ""
 
 
 def evaluate_assignment(text):
@@ -11,74 +35,48 @@ def evaluate_assignment(text):
     prompt = f"""
 You are an experienced university professor.
 
-Evaluate the following student assignment.
+Evaluate the assignment.
 
-Give marks as follows:
+Give marks out of 20 for:
 
-1. Understanding of the Topic (20 Marks)
+1. Understanding
+2. Technical Accuracy
+3. Critical Thinking
+4. Images and Diagrams
+5. Presentation
 
-2. Technical Accuracy (20 Marks)
+Return ONLY valid JSON.
 
-3. Explanation with Examples (20 Marks)
+Example:
 
-4. Originality and Critical Thinking (20 Marks)
+{{
+  "understanding":18,
+  "technical":17,
+  "critical":19,
+  "images":18,
+  "presentation":17,
+  "total":89,
+  "status":"Accepted",
+  "feedback":"Excellent technical explanation. Improve references."
+}}
 
-5. Presentation and Organization (20 Marks)
-
-Total = 100 Marks
-
-Return ONLY in this format:
-
-Understanding: xx/20
-Technical Accuracy: xx/20
-Examples: xx/20
-Originality: xx/20
-Presentation: xx/20
-
-Total: xx/100
-
-Feedback:
-(Write detailed feedback in 200 words.)
-
-Student Assignment:
+Assignment:
 
 {text}
 """
 
     response = model.generate_content(prompt)
 
-    return response.text
-
-
-st.subheader("Rubric")
-
-col1,col2=st.columns(2)
-
-with col1:
-
-    st.metric(
-        "Understanding",
-        result["understanding"]
-    )
-
-    st.metric(
-        "Technical",
-        result["technical"]
-    )
-
-    st.metric(
-        "Critical Thinking",
-        result["critical"]
-    )
-
-with col2:
-
-    st.metric(
-        "Images",
-        result["images"]
-    )
-
-    st.metric(
-        "Presentation",
-        result["presentation"]
-    )
+    try:
+        return json.loads(response.text)
+    except Exception:
+        return {
+            "understanding": 0,
+            "technical": 0,
+            "critical": 0,
+            "images": 0,
+            "presentation": 0,
+            "total": 0,
+            "status": "Manual Review",
+            "feedback": response.text
+        }
