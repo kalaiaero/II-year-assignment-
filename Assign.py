@@ -85,20 +85,20 @@ else:
 
     st.title("Faculty Dashboard")
 
-    password=st.text_input(
+    password = st.text_input(
         "Faculty Password",
         type="password"
     )
 
-    if password=="admin123":
+    if password == "admin123":
 
         st.success("Login Successful")
 
-        data=view_all()
+        data = view_all()
 
-        if len(data)>0:
+        if len(data) > 0:
 
-            df=pd.DataFrame(
+            df = pd.DataFrame(
                 data,
                 columns=[
                     "ID",
@@ -112,10 +112,7 @@ else:
                 ]
             )
 
-            st.dataframe(
-                df,
-                use_container_width=True
-            )
+            st.dataframe(df, use_container_width=True)
 
             st.download_button(
                 "Download Results",
@@ -126,17 +123,15 @@ else:
 
             st.subheader("Search Student")
 
-            reg=st.text_input(
-                "Enter Register Number"
-            )
+            reg = st.text_input("Enter Register Number")
 
             if st.button("Search"):
 
-                result=search_student(reg)
+                result = search_student(reg)
 
                 if result:
 
-                    rdf=pd.DataFrame(
+                    rdf = pd.DataFrame(
                         result,
                         columns=[
                             "ID",
@@ -153,18 +148,7 @@ else:
                     st.dataframe(rdf)
 
                 else:
-
                     st.warning("No Record Found")
 
-
-    elif password!="":
-
+    elif password != "":
         st.error("Wrong Password")
-
-st.subheader("Evaluation")
-
-st.metric("Marks", marks)
-
-st.success(status)
-
-st.write(feedback)
