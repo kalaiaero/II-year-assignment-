@@ -1,50 +1,42 @@
 import pdfplumber
 import docx
+from openai import OpenAI
 import json
-import google.generativeai as genai
 
 
-# Gemini API Key
-API_KEY = "YOUR_GEMINI_API_KEY_HERE"
+# OpenAI API Key
+API_KEY = "YOUR_OPENAI_API_KEY"
 
-genai.configure(api_key=API_KEY)
-
-
-model = genai.GenerativeModel("gemini-1.5-flash")
+client = OpenAI(
+    api_key=API_KEY
 )
 
 
 def extract_text(uploaded_file):
 
-    if uploaded_file.name.endswith(".pdf"):
+    text = ""
 
-        text = ""
+    if uploaded_file.name.endswith(".pdf"):
 
         with pdfplumber.open(uploaded_file) as pdf:
 
             for page in pdf.pages:
+                data = page.extract_text()
 
-                page_text = page.extract_text()
-
-                if page_text:
-                    text += page_text + "\n"
-
-        return text
+                if data:
+                    text += data + "\n"
 
 
     elif uploaded_file.name.endswith(".docx"):
 
         doc = docx.Document(uploaded_file)
 
-        text = ""
-
         for para in doc.paragraphs:
             text += para.text + "\n"
 
-        return text
 
+    return text
 
-    return ""
 
 
 def evaluate_assignment(text):
@@ -57,22 +49,22 @@ Evaluate this student assignment.
 
 Give marks:
 
-Understanding: /20
-Technical Accuracy: /20
-Critical Thinking: /20
-Images: /20
-Presentation: /20
+1. Understanding - 20
+2. Technical Accuracy - 20
+3. Examples - 20
+4. Originality - 20
+5. Presentation - 20
 
 Return only JSON:
 
 {{
 "understanding":0,
 "technical":0,
-"critical":0,
-"images":0,
+"examples":0,
+"originality":0,
 "presentation":0,
 "total":0,
-"status":"Accepted",
+"status":"",
 "feedback":""
 }}
 
@@ -83,8 +75,20 @@ Assignment:
 """
 
 
-    response = model.generate_content(prompt)
+    response = client.chat.completions.create(
 
-    result = json.loads(response.text)
+        model="gpt-4o-mini",
 
-    return result
+        messages=[
+            {
+                "role":"user",
+                "content":prompt
+            }
+        ]
+
+    )
+
+
+    result = response.choices[0].message.content
+
+    return json.loads(result)
