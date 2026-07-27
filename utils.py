@@ -10,8 +10,7 @@ API_KEY = "YOUR_GEMINI_API_KEY_HERE"
 genai.configure(api_key=API_KEY)
 
 
-model = genai.GenerativeModel(
-    "gemini-1.5-pro"
+model = genai.GenerativeModel("gemini-1.5-flash")
 )
 
 
