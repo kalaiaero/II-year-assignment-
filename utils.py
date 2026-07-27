@@ -8,7 +8,7 @@ import json
 API_KEY = "YOUR_OPENAI_API_KEY"
 
 client = OpenAI(
-    api_key=API_KEY
+    api_key=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
 )
 
 
