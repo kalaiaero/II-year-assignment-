@@ -3,11 +3,11 @@ import pdfplumber
 import docx
 import google.generativeai as genai
 import streamlit as st
+api_key = st.secrets["GOOGLE_API_KEY"]
 
-# Configure Gemini
-genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+genai.configure(api_key=api_key)
 
-model = genai.GenerativeModel("gemini-2.5-pro")
+model = genai.GenerativeModel("gemini-1.5-pro")
 
 
 def extract_text(uploaded_file):
