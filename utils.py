@@ -74,19 +74,17 @@ Assignment:
 
 """
 
-
+try:
     response = client.chat.completions.create(
-
         model="gpt-4o-mini",
-
         messages=[
-            {
-                "role":"user",
-                "content":prompt
-            }
+            {"role": "user", "content": prompt}
         ]
-
     )
+except Exception as e:
+    import streamlit as st
+    st.error(str(e))
+    raise
 
 
     result = response.choices[0].message.content
