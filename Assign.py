@@ -190,10 +190,11 @@ else:
                 else:
 
                     st.warning("No Record Found")
-marks = 85
-status = "Accepted"
-feedback = "Good Work"
 
+with open("rubric.txt", "r", encoding="utf-8") as f:
+    rubric = f.read()
+
+prompt = rubric + "\n\nStudent Assignment:\n\n" + text
 
 from utils import extract_text, evaluate_assignment
 
@@ -204,7 +205,6 @@ result = evaluate_assignment(text)
 st.subheader("AI Evaluation")
 
 st.write(result)
-    
 
     elif password!="":
 
