@@ -48,3 +48,37 @@ Student Assignment:
     response = model.generate_content(prompt)
 
     return response.text
+
+
+st.subheader("Rubric")
+
+col1,col2=st.columns(2)
+
+with col1:
+
+    st.metric(
+        "Understanding",
+        result["understanding"]
+    )
+
+    st.metric(
+        "Technical",
+        result["technical"]
+    )
+
+    st.metric(
+        "Critical Thinking",
+        result["critical"]
+    )
+
+with col2:
+
+    st.metric(
+        "Images",
+        result["images"]
+    )
+
+    st.metric(
+        "Presentation",
+        result["presentation"]
+    )
