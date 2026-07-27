@@ -1,12 +1,10 @@
-
 import streamlit as st
 import os
 import pandas as pd
+
 from database import *
-
-create_table()
-
 from utils import extract_text, evaluate_assignment
+
 st.set_page_config(
     page_title="AI Assignment Evaluation System",
     page_icon="🎓",
@@ -19,63 +17,75 @@ menu = st.sidebar.selectbox(
     "Select Portal",
     ["Student Submission", "Faculty Dashboard"]
 )
-
 ###########################################################
 # STUDENT SUBMISSION
 ###########################################################
-assignment = st.file_uploader(
-    "Upload Assignment",
-    type=["pdf", "docx"]
-)
+###########################################################
+# STUDENT SUBMISSION
+###########################################################
 
-if st.button("Submit Assignment"):
+if menu == "Student Submission":
 
-    if assignment is None:
-        st.error("Please upload assignment.")
-    else:
+    st.title("🎓 AI Assignment Submission Portal")
 
-        os.makedirs("uploads", exist_ok=True)
+    col1, col2 = st.columns(2)
 
-        filepath = os.path.join("uploads", assignment.name)
+    with col1:
+        name = st.text_input("Student Name")
 
-        with open(filepath, "wb") as f:
-            f.write(assignment.getbuffer())
+    with col2:
+        regno = st.text_input("Register Number")
 
-        text = extract_text(assignment)
-        result = evaluate_assignment(text)
+    department = st.selectbox(
+        "Department",
+        ["CSE", "AI&DS", "IT", "ECE", "EEE", "MECH", "CIVIL"]
+    )
 
-        marks = result["total"]
-        status = result["status"]
-        feedback = result["feedback"]
+    subject = st.text_input("Subject")
 
-        insert_result(
-            name,
-            regno,
-            department,
-            subject,
-            marks,
-            status,
-            feedback
-        )
+    assignment = st.file_uploader(
+        "Upload Assignment",
+        type=["pdf", "docx"]
+    )
 
-        st.success("Assignment Submitted Successfully")
-        st.metric("Total Marks", f"{marks}/100")
+    if st.button("Submit Assignment"):
 
-        st.subheader("Rubric Evaluation")
+        if assignment is None:
+            st.error("Please upload assignment.")
 
-        col1, col2 = st.columns(2)
+        else:
 
-        with col1:
-            st.metric("Understanding", result["understanding"])
-            st.metric("Technical", result["technical"])
-            st.metric("Critical Thinking", result["critical"])
+            os.makedirs("uploads", exist_ok=True)
 
-        with col2:
-            st.metric("Images", result["images"])
-            st.metric("Presentation", result["presentation"])
+            filepath = os.path.join("uploads", assignment.name)
 
-        st.subheader("Faculty Feedback")
-        st.write(feedback)
+            with open(filepath, "wb") as f:
+                f.write(assignment.getbuffer())
+
+            text = extract_text(assignment)
+
+            result = evaluate_assignment(text)
+
+            marks = result["total"]
+            status = result["status"]
+            feedback = result["feedback"]
+
+            insert_result(
+                name,
+                regno,
+                department,
+                subject,
+                marks,
+                status,
+                feedback
+            )
+
+            st.success("Assignment Submitted Successfully")
+
+            st.metric("Total Marks", f"{marks}/100")
+###########################################################
+# FACULTY DASHBOARD
+###########################################################
 
 ###########################################################
 # FACULTY DASHBOARD
@@ -83,7 +93,7 @@ if st.button("Submit Assignment"):
 
 else:
 
-    st.title("Faculty Dashboard")
+    st.title("👨‍🏫 Faculty Dashboard")
 
     password = st.text_input(
         "Faculty Password",
@@ -114,41 +124,8 @@ else:
 
             st.dataframe(df, use_container_width=True)
 
-            st.download_button(
-                "Download Results",
-                df.to_csv(index=False),
-                "Assignment_Results.csv",
-                "text/csv"
-            )
-
-            st.subheader("Search Student")
-
-            reg = st.text_input("Enter Register Number")
-
-            if st.button("Search"):
-
-                result = search_student(reg)
-
-                if result:
-
-                    rdf = pd.DataFrame(
-                        result,
-                        columns=[
-                            "ID",
-                            "Student Name",
-                            "Register Number",
-                            "Department",
-                            "Subject",
-                            "Marks",
-                            "Status",
-                            "Feedback"
-                        ]
-                    )
-
-                    st.dataframe(rdf)
-
-                else:
-                    st.warning("No Record Found")
+        else:
+            st.info("No assignments submitted yet.")
 
     elif password != "":
         st.error("Wrong Password")
